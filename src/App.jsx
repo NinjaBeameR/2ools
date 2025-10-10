@@ -4,7 +4,9 @@ import { Sun, Moon } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import WelcomeDialog from './components/WelcomeDialog';
+import UpdateDialog from './components/UpdateDialog';
 import Home from './pages/Home';
+import Settings from './pages/Settings';
 import ToolWindow from './pages/ToolWindow';
 
 function ThemeToggle() {
@@ -57,6 +59,7 @@ function AppContent() {
   return (
     <>
       <WelcomeDialog />
+      <UpdateDialog />
       <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900">
         <Sidebar />
         <div className="flex-1 flex flex-col">
@@ -65,6 +68,7 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/category/:category" element={<Home />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Home />} />
             </Routes>
           </main>

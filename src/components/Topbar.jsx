@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Settings, Sun, Moon } from 'lucide-react';
+import { Search, Sun, Moon } from 'lucide-react';
 
 function Topbar() {
   const [isDark, setIsDark] = useState(() => {
@@ -54,9 +54,6 @@ function Topbar() {
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
           >
             {isDark ? <Sun className="w-5 h-5 text-zinc-600 dark:text-zinc-400" /> : <Moon className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />}
-          </button>
-          <button className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
-            <Settings className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
           </button>
         </div>
       </div>
