@@ -61,6 +61,7 @@
       "repo": "2ools"
     },
     "win": {
+      "icon": "public/favicon.ico",
       "target": [
         {
           "target": "nsis",
