@@ -7,6 +7,18 @@ const log = require('electron-log');
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
+// Disable auto-updater in development mode
+if (process.env.NODE_ENV === 'development') {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+}
+
+// Handle auto-updater errors silently
+autoUpdater.on('error', (error) => {
+  log.error('Auto-updater error:', error);
+  // Don't show error dialog to user for update check failures
+});
+
 let mainWindow;
 
 function createWindow() {
@@ -39,15 +51,22 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
   
-  // Check for updates after app loads (wait 3 seconds)
-  setTimeout(() => {
-    autoUpdater.checkForUpdates();
-  }, 3000);
-  
-  // Check for updates daily
-  setInterval(() => {
-    autoUpdater.checkForUpdates();
-  }, 24 * 60 * 60 * 1000); // 24 hours
+  // Only check for updates in production and if app is packaged
+  if (process.env.NODE_ENV !== 'development' && app.isPackaged) {
+    // Check for updates after app loads (wait 3 seconds)
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch((error) => {
+        log.error('Update check failed:', error);
+      });
+    }, 3000);
+    
+    // Check for updates daily
+    setInterval(() => {
+      autoUpdater.checkForUpdates().catch((error) => {
+        log.error('Update check failed:', error);
+      });
+    }, 24 * 60 * 60 * 1000); // 24 hours
+  }
 });
 
 app.on('window-all-closed', () => {
