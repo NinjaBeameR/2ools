@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'  # Triggers on version tags like v1.0.6, v2.0.0, etc.
 
 permissions:
   contents: write
@@ -20,20 +20,77 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
+      - name: Build Vite application
         run: npm run build
 
-      - name: Build installer
+      - name: Build and publish Electron installer
         run: npx electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: Get version from package.json
+        id: package_version
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Create Release Notes
+        id: release_notes
+        shell: pwsh
+        run: |
+          $version = "${{ steps.package_version.outputs.version }}"
+          $notes = @"
+          ## 🚀 Mura-2ools v$version
+          
+          ### 📦 Installation
+          Download **Mura-2ools Setup $version.exe** below and run the installer.
+          
+          ### ✨ Features
+          - 20+ productivity tools in one app
+          - Auto-update functionality
+          - Offline-first design
+          - Dark mode support
+          
+          ### 🔄 Auto-Update
+          If you already have Mura-2ools installed, you'll be automatically notified of this update within the app.
+          
+          ### 📝 Changes
+          See commit history for detailed changes.
+          
+          ---
+          **Installer**: Mura-2ools Setup $version.exe  
+          **Size**: ~90 MB  
+          **Platform**: Windows 10/11 (x64)
+          "@
+          $notes | Out-File -FilePath release_notes.md -Encoding utf8
+          "notes_file=release_notes.md" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts (backup)
         uses: actions/upload-artifact@v4
         with:
-          name: windows-installer
-          path: release/*.exe
+          name: windows-installer-v${{ steps.package_version.outputs.version }}
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
+          retention-days: 30

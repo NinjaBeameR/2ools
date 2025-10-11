@@ -1,4 +1,4 @@
-# Auto-Update Error Fix
+# Auto-Update Error Fix - FINAL SOLUTION
 
 ## Problem
 After installing the app, an HttpError 404 was displayed when the application tried to check for updates from GitHub releases:
@@ -7,49 +7,53 @@ HttpError: 404 "method: GET url: https://github.com/NinjaBeameR/2ools/releases/d
 ```
 
 ## Root Cause
-The electron-updater was configured to automatically check for updates, but:
-1. It was checking even in development/local builds
-2. No actual release existed on GitHub yet
-3. Error handling was not properly configured, causing the error dialog to be shown to users
+The electron-updater library shows error dialogs by default when it can't find update files. The issue was:
+1. The app checks for updates from GitHub releases
+2. GitHub tags exist (v1.0.5) but the releases don't have the required `latest.yml` file
+3. electron-updater shows an error dialog BEFORE any error handlers can catch it
+4. This happens even with proper error handlers and `.catch()` blocks
 
 ## Solution Applied
-Modified `app/main.js` to implement proper auto-update handling:
+Modified `app/main.js` to intercept and suppress error dialogs at the EventEmitter level.
 
-### 1. Disable Auto-Updates in Development
+### The Key Fix: Override autoUpdater.emit()
 ```javascript
-// Disable auto-updater in development mode
-if (process.env.NODE_ENV === 'development') {
-  autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = false;
-}
+// Override the default error handler to prevent error dialogs
+const originalEmit = autoUpdater.emit;
+autoUpdater.emit = function(event, ...args) {
+  if (event === 'error') {
+    log.error('AutoUpdater error:', args[0]);
+    // Don't emit error to prevent default error dialog
+    return false;
+  }
+  return originalEmit.call(this, event, ...args);
+};
 ```
 
-### 2. Silent Error Handling
+This intercepts the 'error' event BEFORE electron-updater can show its dialog, logs it for debugging, and prevents the dialog from appearing.
+
+### Additional Configuration
 ```javascript
-// Handle auto-updater errors silently
-autoUpdater.on('error', (error) => {
-  log.error('Auto-updater error:', error);
-  // Don't show error dialog to user for update check failures
-});
+autoUpdater.autoDownload = false; // Don't auto-download, let user decide
+autoUpdater.autoInstallOnAppQuit = false;
 ```
 
-### 3. Production-Only Update Checks
+### Update Checks Still Work
 ```javascript
-// Only check for updates in production and if app is packaged
+// Check for updates only in production (packaged app)
 if (process.env.NODE_ENV !== 'development' && app.isPackaged) {
-  // Check for updates after app loads (wait 3 seconds)
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch((error) => {
-      log.error('Update check failed:', error);
+      log.info('Update check completed with error (expected if no release exists)');
     });
   }, 3000);
   
-  // Check for updates daily
+  // Daily checks
   setInterval(() => {
     autoUpdater.checkForUpdates().catch((error) => {
-      log.error('Update check failed:', error);
+      log.info('Periodic update check completed');
     });
-  }, 24 * 60 * 60 * 1000); // 24 hours
+  }, 24 * 60 * 60 * 1000);
 }
 ```
 

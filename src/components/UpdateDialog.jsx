@@ -36,7 +36,6 @@ function UpdateDialog() {
 
           case 'update-not-available':
             setUpdateState(prev => ({ ...prev, checking: false, available: false }));
-            setTimeout(() => setUpdateState(prev => ({ ...prev, checking: false })), 3000);
             break;
 
           case 'download-progress':
@@ -57,11 +56,13 @@ function UpdateDialog() {
             break;
 
           case 'error':
+            // On error, stop checking and hide the dialog
             setUpdateState(prev => ({
               ...prev,
               checking: false,
               downloading: false,
-              error: info.message
+              available: false,
+              error: null // Don't show error to user, just stop checking
             }));
             break;
         }

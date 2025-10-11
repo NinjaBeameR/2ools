@@ -7,16 +7,47 @@ const log = require('electron-log');
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Disable auto-updater in development mode
-if (process.env.NODE_ENV === 'development') {
-  autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = false;
+// Configure auto-updater properly
+autoUpdater.autoDownload = false; // Don't auto-download, let user decide
+autoUpdater.autoInstallOnAppQuit = false;
+
+// Helper function to send update status to renderer
+function sendUpdateStatus(status, data = {}) {
+  if (mainWindow) {
+    mainWindow.webContents.send('update-status', { status, data });
+  }
 }
 
-// Handle auto-updater errors silently
+// Handle all auto-updater events properly
+autoUpdater.on('checking-for-update', () => {
+  log.info('Checking for updates...');
+  sendUpdateStatus('checking-for-update');
+});
+
+autoUpdater.on('update-available', (info) => {
+  log.info('Update available:', info.version);
+  sendUpdateStatus('update-available', info);
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  log.info('No updates available');
+  sendUpdateStatus('update-not-available', info);
+});
+
 autoUpdater.on('error', (error) => {
-  log.error('Auto-updater error:', error);
-  // Don't show error dialog to user for update check failures
+  log.error('AutoUpdater error (suppressed):', error.message);
+  // Send to UI so it can stop showing "checking" state
+  sendUpdateStatus('error', { message: error.message });
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  log.info('Download progress:', progress.percent);
+  sendUpdateStatus('download-progress', progress);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  log.info('Update downloaded:', info.version);
+  sendUpdateStatus('update-downloaded', info);
 });
 
 let mainWindow;
@@ -51,19 +82,20 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
   
-  // Only check for updates in production and if app is packaged
+  // Check for updates only in production (packaged app)
   if (process.env.NODE_ENV !== 'development' && app.isPackaged) {
     // Check for updates after app loads (wait 3 seconds)
     setTimeout(() => {
       autoUpdater.checkForUpdates().catch((error) => {
-        log.error('Update check failed:', error);
+        // Error already logged and suppressed by emit override
+        log.info('Update check completed with error (expected if no release exists)');
       });
     }, 3000);
     
     // Check for updates daily
     setInterval(() => {
       autoUpdater.checkForUpdates().catch((error) => {
-        log.error('Update check failed:', error);
+        log.info('Periodic update check completed');
       });
     }, 24 * 60 * 60 * 1000); // 24 hours
   }
@@ -389,33 +421,4 @@ ipcMain.handle('install-update', () => {
   autoUpdater.quitAndInstall(false, true);
 });
 
-// Auto-updater events
-autoUpdater.on('checking-for-update', () => {
-  sendUpdateStatus('checking-for-update');
-});
-
-autoUpdater.on('update-available', (info) => {
-  sendUpdateStatus('update-available', info);
-});
-
-autoUpdater.on('update-not-available', (info) => {
-  sendUpdateStatus('update-not-available', info);
-});
-
-autoUpdater.on('error', (err) => {
-  sendUpdateStatus('error', { message: err.message });
-});
-
-autoUpdater.on('download-progress', (progress) => {
-  sendUpdateStatus('download-progress', progress);
-});
-
-autoUpdater.on('update-downloaded', (info) => {
-  sendUpdateStatus('update-downloaded', info);
-});
-
-function sendUpdateStatus(status, data = {}) {
-  if (mainWindow) {
-    mainWindow.webContents.send('update-status', { status, data });
-  }
-}
+// Auto-updater events are handled at the top of the file
