@@ -8,7 +8,15 @@
 [![Downloads](https://img.shields.io/github/downloads/NinjaBeameR/2ools/total?style=for-the-badge&logo=github&color=green)](https://github.com/NinjaBeameR/2ools/releases)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-[📥 Download Latest Release](https://github.com/NinjaBeameR/2ools/releases/latest/download/Múra-2ools-Setup-1.0.5.exe) • [📖 Documentation](#features) • [🐛 Report Bug](https://github.com/NinjaBeameR/2ools/issues) • [✨ Request Feature](https://github.com/NinjaBeameR/2ools/issues)
+### 📥 Quick Download
+
+<a href="https://github.com/NinjaBeameR/2ools/releases/latest">
+  <img src="https://img.shields.io/badge/Download-Windows%20Installer-blue?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="50">
+</a>
+
+**Latest Version: v1.0.5** | **Size: ~90 MB** | **Windows 10/11**
+
+[📖 Documentation](#features) • [🐛 Report Bug](https://github.com/NinjaBeameR/2ools/issues) • [✨ Request Feature](https://github.com/NinjaBeameR/2ools/issues)
 
 </div>
 
