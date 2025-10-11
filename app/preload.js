@@ -30,4 +30,7 @@ contextBridge.exposeInMainWorld('electron', {
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),
   onUpdateStatus: (callback) => ipcRenderer.on('update-status', (event, data) => callback(data)),
+  
+  // System Info
+  getSystemInfo: () => ipcRenderer.invoke('get-system-info'),
 });

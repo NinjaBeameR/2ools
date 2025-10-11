@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const os = require('os');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
@@ -419,6 +420,59 @@ ipcMain.handle('download-update', () => {
 // Install update
 ipcMain.handle('install-update', () => {
   autoUpdater.quitAndInstall(false, true);
+});
+
+// System Info
+ipcMain.handle('get-system-info', async () => {
+  try {
+    const cpus = os.cpus();
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+
+    // Get CPU usage
+    const getCPUUsage = () => {
+      const cpus = os.cpus();
+      let totalIdle = 0, totalTick = 0;
+
+      cpus.forEach(cpu => {
+        for (let type in cpu.times) {
+          totalTick += cpu.times[type];
+        }
+        totalIdle += cpu.times.idle;
+      });
+
+      const idle = totalIdle / cpus.length;
+      const total = totalTick / cpus.length;
+      const usage = 100 - ~~(100 * idle / total);
+      return usage;
+    };
+
+    return {
+      cpu: {
+        model: cpus[0]?.model || 'Unknown',
+        cores: cpus.length,
+        speed: cpus[0]?.speed || 0,
+        usage: getCPUUsage()
+      },
+      memory: {
+        total: totalMem,
+        used: usedMem,
+        free: freeMem,
+        percentage: (usedMem / totalMem) * 100
+      },
+      platform: {
+        type: os.type(),
+        platform: os.platform(),
+        arch: os.arch(),
+        release: os.release(),
+        hostname: os.hostname(),
+        uptime: os.uptime()
+      }
+    };
+  } catch (error) {
+    return { error: error.message };
+  }
 });
 
 // Auto-updater events are handled at the top of the file

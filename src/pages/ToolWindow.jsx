@@ -24,6 +24,21 @@ import StartupProgramManager from '../tools/StartupProgramManager';
 import FileLocker from '../tools/FileLocker';
 import ClipboardPrivacyMode from '../tools/ClipboardPrivacyMode';
 import SecureNotes from '../tools/SecureNotes';
+// New Media Tools
+import AudioTrimmerJoiner from '../tools/AudioTrimmerJoiner';
+import ImageToPDF from '../tools/ImageToPDF';
+import TextToSpeech from '../tools/TextToSpeech';
+import VideoCompressor from '../tools/VideoCompressor';
+// New Productivity Tools
+import DailyGoalDashboard from '../tools/DailyGoalDashboard';
+import HabitTracker from '../tools/HabitTracker';
+import ReadingMode from '../tools/ReadingMode';
+// New Security Tools
+import FileShredder from '../tools/FileShredder';
+import TwoLayerVault from '../tools/TwoLayerVault';
+// New System Tools
+import SystemInfoDashboard from '../tools/SystemInfoDashboard';
+import ScreenRecorder from '../tools/ScreenRecorder';
 
 function ToolWindow() {
   const { toolName } = useParams();
@@ -78,6 +93,32 @@ function ToolWindow() {
         return <ClipboardPrivacyMode />;
       case 'secure-notes':
         return <SecureNotes />;
+      // Media Tools
+      case 'audio-trimmer-and-joiner':
+        return <AudioTrimmerJoiner />;
+      case 'image-to-pdf':
+        return <ImageToPDF />;
+      case 'text-to-speech':
+        return <TextToSpeech />;
+      case 'video-compressor':
+        return <VideoCompressor />;
+      // Productivity Tools
+      case 'daily-goal-dashboard':
+        return <DailyGoalDashboard />;
+      case 'habit-tracker':
+        return <HabitTracker />;
+      case 'reading-mode':
+        return <ReadingMode />;
+      // Security Tools
+      case 'file-shredder':
+        return <FileShredder />;
+      case 'two-layer-vault':
+        return <TwoLayerVault />;
+      // System Tools
+      case 'system-info-dashboard':
+        return <SystemInfoDashboard />;
+      case 'screen-recorder':
+        return <ScreenRecorder />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center">

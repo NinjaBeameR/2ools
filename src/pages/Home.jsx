@@ -16,14 +16,24 @@ const toolCategories = [
 		],
 	},
 	{
+		name: 'Media Tools',
+		id: 'media',
+		tools: [
+			{ name: 'Audio Trimmer & Joiner', icon: 'Music' },
+			{ name: 'Image Converter', icon: 'Image' },
+			{ name: 'Image Resizer & Cropper', icon: 'Crop' },
+			{ name: 'Text to Speech', icon: 'Volume2' },
+			{ name: 'Video Compressor', icon: 'Video' },
+		],
+	},
+	{
 		name: 'PDF & Image Tools',
 		id: 'pdf',
 		tools: [
 			{ name: 'PDF Merger', icon: 'FileText' },
 			{ name: 'PDF Splitter', icon: 'FileText' },
 			{ name: 'PDF Compressor', icon: 'FileText' },
-			{ name: 'Image Converter', icon: 'Image' },
-			{ name: 'Image Resizer & Cropper', icon: 'Crop' },
+			{ name: 'Image to PDF', icon: 'FileImage' },
 		],
 	},
 	{
@@ -35,6 +45,9 @@ const toolCategories = [
 			{ name: 'Pomodoro Timer', icon: 'Timer' },
 			{ name: 'Reminder Alerts', icon: 'Bell' },
 			{ name: 'Daily Journal', icon: 'BookOpen' },
+			{ name: 'Daily Goal Dashboard', icon: 'Target' },
+			{ name: 'Habit Tracker', icon: 'TrendingUp' },
+			{ name: 'Reading Mode', icon: 'BookOpen' },
 		],
 	},
 	{
@@ -46,6 +59,8 @@ const toolCategories = [
 			{ name: 'Temporary File Cleaner', icon: 'Trash2' },
 			{ name: 'Disk Space Analyzer', icon: 'HardDrive' },
 			{ name: 'Startup Program Manager', icon: 'PlayCircle' },
+			{ name: 'System Info Dashboard', icon: 'Activity' },
+			{ name: 'Screen Recorder', icon: 'MonitorPlay' },
 		],
 	},
 	{
@@ -53,8 +68,10 @@ const toolCategories = [
 		id: 'security',
 		tools: [
 			{ name: 'File Locker', icon: 'Shield' },
+			{ name: 'Two-Layer Vault', icon: 'ShieldCheck' },
 			{ name: 'Clipboard Privacy Mode', icon: 'EyeOff' },
 			{ name: 'Secure Notes', icon: 'Lock' },
+			{ name: 'File Shredder', icon: 'Trash2' },
 		],
 	},
 ];

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Wrench, FileText, CheckSquare, Folder, Shield, Settings } from 'lucide-react';
+import { Home, Wrench, FileText, CheckSquare, Folder, Shield, Settings, Video } from 'lucide-react';
 
 const sidebarItems = [
   { name: 'Home', icon: Home, path: '/' },
   { name: 'General Tools', icon: Wrench, path: '/category/general' },
+  { name: 'Media Tools', icon: Video, path: '/category/media' },
   { name: 'PDF & Image Tools', icon: FileText, path: '/category/pdf' },
   { name: 'Productivity', icon: CheckSquare, path: '/category/productivity' },
   { name: 'File & System', icon: Folder, path: '/category/file' },
