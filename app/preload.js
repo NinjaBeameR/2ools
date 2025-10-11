@@ -33,4 +33,7 @@ contextBridge.exposeInMainWorld('electron', {
   
   // System Info
   getSystemInfo: () => ipcRenderer.invoke('get-system-info'),
+  
+  // Screen Recorder
+  saveRecording: (buffer, defaultName) => ipcRenderer.invoke('save-recording', { buffer, defaultName }),
 });

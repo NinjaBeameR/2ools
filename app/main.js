@@ -475,4 +475,32 @@ ipcMain.handle('get-system-info', async () => {
   }
 });
 
+// Screen Recorder - Save Recording
+ipcMain.handle('save-recording', async (event, { buffer, defaultName }) => {
+  const { dialog } = require('electron');
+  const fs = require('fs').promises;
+  
+  try {
+    const result = await dialog.showSaveDialog({
+      title: 'Save Recording',
+      defaultPath: defaultName || 'screen-recording.webm',
+      filters: [
+        { name: 'Video Files', extensions: ['webm', 'mp4'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+
+    if (result.canceled) {
+      return { success: false, canceled: true };
+    }
+
+    // Write the buffer to the selected file
+    await fs.writeFile(result.filePath, Buffer.from(buffer));
+    
+    return { success: true, filePath: result.filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 // Auto-updater events are handled at the top of the file

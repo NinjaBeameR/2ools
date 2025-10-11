@@ -34,7 +34,6 @@ import DailyGoalDashboard from '../tools/DailyGoalDashboard';
 import HabitTracker from '../tools/HabitTracker';
 import ReadingMode from '../tools/ReadingMode';
 // New Security Tools
-import FileShredder from '../tools/FileShredder';
 import TwoLayerVault from '../tools/TwoLayerVault';
 // New System Tools
 import SystemInfoDashboard from '../tools/SystemInfoDashboard';
@@ -110,8 +109,6 @@ function ToolWindow() {
       case 'reading-mode':
         return <ReadingMode />;
       // Security Tools
-      case 'file-shredder':
-        return <FileShredder />;
       case 'two-layer-vault':
         return <TwoLayerVault />;
       // System Tools

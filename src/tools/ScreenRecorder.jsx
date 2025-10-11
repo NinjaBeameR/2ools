@@ -12,6 +12,7 @@ function ScreenRecorder() {
   const [includeAudio, setIncludeAudio] = useState(false);
   const [videoQuality, setVideoQuality] = useState('1080p');
   const [screenshots, setScreenshots] = useState([]);
+  const [recordingMimeType, setRecordingMimeType] = useState('video/webm');
 
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
@@ -71,17 +72,27 @@ function ScreenRecorder() {
       streamRef.current = combinedStream;
 
       // Setup MediaRecorder
+      // Try to use MP4/H.264 format first (better compatibility), fallback to WebM
+      let mimeType = 'video/webm;codecs=vp9';
+      
+      if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
+        mimeType = 'video/webm;codecs=h264';
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        mimeType = 'video/webm;codecs=vp9';
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        mimeType = 'video/webm';
+      }
+
       const options = {
-        mimeType: 'video/webm;codecs=vp9',
+        mimeType,
         videoBitsPerSecond: videoQuality === '4k' ? 10000000 : videoQuality === '1080p' ? 5000000 : 2500000
       };
 
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm';
-      }
-
       const mediaRecorder = new MediaRecorder(combinedStream, options);
       mediaRecorderRef.current = mediaRecorder;
+      setRecordingMimeType(mimeType); // Store for later use
 
       const chunks = [];
       mediaRecorder.ondataavailable = (e) => {
@@ -149,20 +160,50 @@ function ScreenRecorder() {
     }
   };
 
-  const downloadRecording = () => {
+  const downloadRecording = async () => {
     if (recordedChunks.length === 0) {
       setError('No recording to download');
       return;
     }
 
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `screen-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setSuccess('Recording downloaded successfully!');
+    try {
+      // Determine file extension from mime type
+      const extension = recordingMimeType.includes('mp4') ? 'mp4' : 'webm';
+      const blob = new Blob(recordedChunks, { type: recordingMimeType });
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const defaultName = `screen-recording-${timestamp}.${extension}`;
+
+      // Check if we're in Electron environment
+      if (window.electron && window.electron.saveRecording) {
+        // Convert blob to array buffer
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = new Uint8Array(arrayBuffer);
+        
+        // Use Electron's save dialog
+        const result = await window.electron.saveRecording(Array.from(buffer), defaultName);
+        
+        if (result.success) {
+          setSuccess('Recording saved successfully!');
+          setRecordedChunks([]); // Clear after saving
+        } else if (result.canceled) {
+          // User canceled, do nothing
+        } else {
+          setError('Failed to save recording: ' + (result.error || 'Unknown error'));
+        }
+      } else {
+        // Fallback for browser/dev environment
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = defaultName;
+        a.click();
+        URL.revokeObjectURL(url);
+        setSuccess('Recording downloaded successfully!');
+        setRecordedChunks([]); // Clear after saving
+      }
+    } catch (err) {
+      setError('Failed to save recording: ' + err.message);
+    }
   };
 
   const takeScreenshot = async () => {

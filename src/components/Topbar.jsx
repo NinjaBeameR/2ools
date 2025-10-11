@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Sun, Moon, X } from 'lucide-react';
+import { Search, Sun, Moon, X, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // All available tools across categories
 const allTools = [
@@ -17,6 +18,7 @@ const allTools = [
   { name: 'Image Resizer & Cropper', category: 'Media Tools', path: 'image-resizer-and-cropper' },
   { name: 'Text to Speech', category: 'Media Tools', path: 'text-to-speech' },
   { name: 'Video Compressor', category: 'Media Tools', path: 'video-compressor' },
+  { name: 'Screen Recorder', category: 'Media Tools', path: 'screen-recorder' },
   // PDF & Image Tools
   { name: 'PDF Merger', category: 'PDF & Image Tools', path: 'pdf-merger' },
   { name: 'PDF Splitter', category: 'PDF & Image Tools', path: 'pdf-splitter' },
@@ -38,13 +40,11 @@ const allTools = [
   { name: 'Disk Space Analyzer', category: 'File & System Tools', path: 'disk-space-analyzer' },
   { name: 'Startup Program Manager', category: 'File & System Tools', path: 'startup-program-manager' },
   { name: 'System Info Dashboard', category: 'File & System Tools', path: 'system-info-dashboard' },
-  { name: 'Screen Recorder', category: 'File & System Tools', path: 'screen-recorder' },
   // Security & Privacy
   { name: 'File Locker', category: 'Security & Privacy', path: 'file-locker' },
   { name: 'Two-Layer Vault', category: 'Security & Privacy', path: 'two-layer-vault' },
   { name: 'Clipboard Privacy Mode', category: 'Security & Privacy', path: 'clipboard-privacy-mode' },
   { name: 'Secure Notes', category: 'Security & Privacy', path: 'secure-notes' },
-  { name: 'File Shredder', category: 'Security & Privacy', path: 'file-shredder' },
 ];
 
 function Topbar() {
@@ -59,6 +59,10 @@ function Topbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('mura-favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     if (isDark) {
@@ -138,40 +142,75 @@ function Topbar() {
           </div>
           
           {/* Search Results Dropdown */}
-          {showResults && searchResults.length > 0 && (
-            <div className="absolute top-full mt-2 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
-              {searchResults.map((tool, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleToolClick(tool.path)}
-                  className="w-full px-4 py-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors border-b border-zinc-100 dark:border-zinc-700 last:border-0"
-                >
-                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {tool.name}
-                  </div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {tool.category}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          <AnimatePresence>
+            {showResults && searchResults.length > 0 && (
+              <motion.div
+                className="absolute top-full mt-2 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {searchResults.map((tool, index) => {
+                  const isFavorite = favorites.includes(tool.name);
+                  return (
+                    <motion.button
+                      key={index}
+                      onClick={() => handleToolClick(tool.path)}
+                      className="w-full px-4 py-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors border-b border-zinc-100 dark:border-zinc-700 last:border-0 flex items-start justify-between gap-2"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.03 }}
+                      whileHover={{ x: 4 }}
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          {tool.name}
+                          {isFavorite && (
+                            <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                          )}
+                        </div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {tool.category}
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </motion.div>
+            )}
 
-          {showResults && searchQuery && searchResults.length === 0 && (
-            <div className="absolute top-full mt-2 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-4 z-50">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                No tools found for "{searchQuery}"
-              </p>
-            </div>
-          )}
+            {showResults && searchQuery && searchResults.length === 0 && (
+              <motion.div
+                className="absolute top-full mt-2 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg p-4 z-50"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  No tools found for "{searchQuery}"
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <div className="flex items-center space-x-4">
-          <button
+          <motion.button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2 }}
           >
-            {isDark ? <Sun className="w-5 h-5 text-zinc-600 dark:text-zinc-400" /> : <Moon className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />}
-          </button>
+            <motion.div
+              initial={false}
+              animate={{ rotate: isDark ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {isDark ? <Sun className="w-5 h-5 text-zinc-600 dark:text-zinc-400" /> : <Moon className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />}
+            </motion.div>
+          </motion.button>
         </div>
       </div>
     </header>
