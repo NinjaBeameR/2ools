@@ -1,6 +1,6 @@
 {
   "name": "mura-2ools",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Mura-2ools - A clean, offline, multi-tool software for everyday digital tasks",
   "main": "app/main.js",
   "scripts": {
