@@ -36,12 +36,15 @@
     "wait-on": "^7.0.0"
   },
   "dependencies": {
+    "axios": "1.12.2",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
     "framer-motion": "12.23.24",
+    "html2canvas": "1.4.1",
     "jspdf": "3.0.3",
     "lowdb": "^6.0.0",
     "lucide-react": "^0.294.0",
+    "mammoth": "1.11.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.296",
     "qrcode": "^1.5.4",

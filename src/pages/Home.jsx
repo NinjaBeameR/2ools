@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 
@@ -21,11 +21,9 @@ const toolCategories = [
 		id: 'media',
 		tools: [
 			{ name: 'Audio Trimmer & Joiner', icon: 'Music' },
-			{ name: 'Image Converter', icon: 'Image' },
-			{ name: 'Image Resizer & Cropper', icon: 'Crop' },
 			{ name: 'Text to Speech', icon: 'Volume2' },
 			{ name: 'Video Compressor', icon: 'Video' },
-			{ name: 'Screen Recorder', icon: 'MonitorPlay' },
+			{ name: 'File Converter', icon: 'FileCode', maintenance: true },
 		],
 	},
 	{
@@ -36,6 +34,8 @@ const toolCategories = [
 			{ name: 'PDF Splitter', icon: 'FileText' },
 			{ name: 'PDF Compressor', icon: 'FileText' },
 			{ name: 'Image to PDF', icon: 'FileImage' },
+			{ name: 'Image Converter', icon: 'Image' },
+			{ name: 'Image Resizer & Cropper', icon: 'Crop' },
 		],
 	},
 	{
@@ -78,6 +78,7 @@ const toolCategories = [
 
 function Home() {
 	const { category } = useParams();
+	const location = useLocation();
 	const [favorites, setFavorites] = useState(() => {
 		const saved = localStorage.getItem('mura-favorites');
 		return saved ? JSON.parse(saved) : [];
@@ -88,6 +89,12 @@ function Home() {
 	}, [favorites]);
 
 	const handleToolClick = (toolName) => {
+		// Find tool in categories to check maintenance status
+		const tool = toolCategories
+			.flatMap(cat => cat.tools)
+			.find(t => t.name === toolName);
+		
+		// If tool is under maintenance, still open but show maintenance notice
 		const toolId = toolName.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
 		if (window.electronAPI) {
 			window.electronAPI.openToolWindow(toolId);
@@ -115,8 +122,13 @@ function Home() {
 		.flatMap(cat => cat.tools.map(tool => ({ ...tool, category: cat.name })))
 		.filter(tool => favorites.includes(tool.name));
 
+	// Check if we're on favorites page
+	const showOnlyFavorites = location.pathname === '/favorites';
+	
 	// Filter categories based on route parameter
-	const filteredCategories = category 
+	const filteredCategories = showOnlyFavorites
+		? [] // Don't show categories on favorites page
+		: category 
 		? toolCategories.filter(cat => cat.id === category)
 		: toolCategories;
 
@@ -125,6 +137,7 @@ function Home() {
 	const renderToolCard = (tool, index) => {
 		const Icon = Icons[tool.icon] || Icons.Wrench;
 		const favorite = isFavorite(tool.name);
+		const isUnderMaintenance = tool.maintenance;
 		
 		return (
 			<motion.div
@@ -135,21 +148,36 @@ function Home() {
 				transition={{ duration: 0.3, delay: index * 0.05 }}
 			>
 				<motion.button
-					onClick={() => handleToolClick(tool.name)}
-					className="w-full flex flex-col items-center justify-center bg-white dark:bg-zinc-800 rounded-xl shadow-md border border-zinc-200 dark:border-zinc-700 cursor-pointer p-6"
+					onClick={() => !isUnderMaintenance && handleToolClick(tool.name)}
+					className={`w-full flex flex-col items-center justify-center bg-white dark:bg-zinc-800 rounded-xl shadow-md border border-zinc-200 dark:border-zinc-700 p-6 ${
+						isUnderMaintenance 
+							? 'cursor-not-allowed opacity-60' 
+							: 'cursor-pointer'
+					}`}
 					style={{ minHeight: 120 }}
-					whileHover={{ 
+					whileHover={isUnderMaintenance ? {} : { 
 						scale: 1.03, 
 						y: -4,
 						boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
 					}}
-					whileTap={{ scale: 0.98 }}
+					whileTap={isUnderMaintenance ? {} : { scale: 0.98 }}
 					transition={{ duration: 0.2 }}
+					disabled={isUnderMaintenance}
 				>
-					<Icon className="w-8 h-8 mb-2 text-emerald-600 dark:text-emerald-400" />
+					<Icon className={`w-8 h-8 mb-2 ${
+						isUnderMaintenance 
+							? 'text-amber-600 dark:text-amber-400' 
+							: 'text-emerald-600 dark:text-emerald-400'
+					}`} />
 					<span className="text-base font-medium text-zinc-800 dark:text-zinc-100">
 						{tool.name}
 					</span>
+					{isUnderMaintenance && (
+						<span className="mt-2 text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+							<Icons.Wrench className="w-3 h-3" />
+							Under Maintenance
+						</span>
+					)}
 				</motion.button>
 				<motion.button
 					onClick={(e) => toggleFavorite(e, tool.name)}
@@ -180,7 +208,7 @@ function Home() {
 	return (
 		<div className="space-y-10">
 			{/* Favorites Section */}
-			{!category && favoriteTools.length > 0 && (
+			{(showOnlyFavorites || !category) && favoriteTools.length > 0 && (
 				<motion.section
 					initial={{ opacity: 0, y: -10 }}
 					animate={{ opacity: 1, y: 0 }}
@@ -195,33 +223,48 @@ function Home() {
 					</div>
 				</motion.section>
 			)}
-
-			{/* Regular Categories */}
-			{filteredCategories.length === 0 ? (
+			
+			{/* Empty favorites message */}
+			{showOnlyFavorites && favoriteTools.length === 0 && (
 				<motion.div 
-					className="text-center py-12"
+					className="text-center py-20"
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
-					transition={{ duration: 0.4 }}
 				>
-					<p className="text-zinc-500 dark:text-zinc-400 text-lg">Category not found</p>
+					<Icons.Star className="w-16 h-16 mx-auto text-zinc-300 dark:text-zinc-600 mb-4" />
+					<h3 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">No Favorites Yet</h3>
+					<p className="text-zinc-500 dark:text-zinc-400">Click the heart icon on any tool to add it to favorites</p>
 				</motion.div>
-			) : (
-				filteredCategories.map((cat) => (
-					<motion.section
-						key={cat.name}
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
+			)}
+
+			{/* Regular Categories */}
+			{!showOnlyFavorites && (
+				filteredCategories.length === 0 ? (
+					<motion.div 
+						className="text-center py-12"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
 						transition={{ duration: 0.4 }}
 					>
-						<h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-							{cat.name}
-						</h2>
-						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-							{cat.tools.map((tool, index) => renderToolCard(tool, index))}
-						</div>
-					</motion.section>
-				))
+						<p className="text-zinc-500 dark:text-zinc-400 text-lg">Category not found</p>
+					</motion.div>
+				) : (
+					filteredCategories.map((cat) => (
+						<motion.section
+							key={cat.name}
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.4 }}
+						>
+							<h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+								{cat.name}
+							</h2>
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+								{cat.tools.map((tool, index) => renderToolCard(tool, index))}
+							</div>
+						</motion.section>
+					))
+				)
 			)}
 		</div>
 	);

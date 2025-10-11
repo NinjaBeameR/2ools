@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, Lock, Key, FileUp, Trash2, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { Shield, Eye, EyeOff, Lock, Key, FileUp, Trash2, AlertCircle, CheckCircle, Loader, AlertTriangle } from 'lucide-react';
 
 function TwoLayerVault() {
   const [password, setPassword] = useState('');
@@ -15,6 +15,8 @@ function TwoLayerVault() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [vaultFiles, setVaultFiles] = useState([]);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
 
   useEffect(() => {
     const storedVaultHash = localStorage.getItem('vaultHash');
@@ -134,8 +136,32 @@ function TwoLayerVault() {
     }
   };
 
+  const handleForgotPassword = () => {
+    if (deleteConfirmation.toUpperCase() === 'DELETE') {
+      localStorage.removeItem('vaultHash');
+      localStorage.removeItem('vaultPinHash');
+      localStorage.removeItem('vaultFiles');
+      setVaultSetupComplete(false);
+      setVaultUnlocked(false);
+      setVaultFiles([]);
+      setPassword('');
+      setPin('');
+      setShowForgotPassword(false);
+      setDeleteConfirmation('');
+      setError('');
+      setSuccess('Vault has been reset. All data has been deleted.');
+    } else {
+      setError('Please type DELETE to confirm');
+    }
+  };
+
   const selectFile = async () => {
     try {
+      if (!window.electron || !window.electron.selectFile) {
+        setError('File selection is only available in Electron environment');
+        return;
+      }
+      
       const result = await window.electron.selectFile();
       if (result) {
         setSelectedFile(result);
@@ -175,6 +201,24 @@ function TwoLayerVault() {
     localStorage.setItem('vaultFiles', JSON.stringify(updatedVaultFiles));
     setSuccess('File removed from vault');
     setError('');
+  };
+
+  const openFile = async (filePath) => {
+    try {
+      if (window.electron && window.electron.openFile) {
+        const result = await window.electron.openFile(filePath);
+        if (result.success) {
+          setSuccess('File opened successfully');
+        } else {
+          setError('Failed to open file: ' + (result.error || 'Unknown error'));
+        }
+      } else {
+        setError('File opening is only available in Electron environment');
+      }
+      setError('');
+    } catch (err) {
+      setError('Failed to open file: ' + err.message);
+    }
   };
 
   return (
@@ -365,6 +409,13 @@ function TwoLayerVault() {
                 <><Key className="w-5 h-5" />Unlock Vault</>
               )}
             </button>
+
+            <button 
+              onClick={() => setShowForgotPassword(true)}
+              className="w-full mt-3 text-sm text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            >
+              Forgot Password?
+            </button>
           </>
         ) : (
           // Vault Unlocked
@@ -426,13 +477,22 @@ function TwoLayerVault() {
                           Added {new Date(file.addedAt).toLocaleDateString()} at {new Date(file.addedAt).toLocaleTimeString()}
                         </p>
                       </div>
-                      <button 
-                        onClick={() => removeFromVault(file.id)}
-                        className="ml-3 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Remove from vault"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => openFile(file.path)}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                          title="Open file"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => removeFromVault(file.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Remove from vault"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -455,6 +515,74 @@ function TwoLayerVault() {
           </>
         )}
       </div>
+
+      {/* Forgot Password Dialog */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-2xl max-w-md w-full p-6 border-2 border-red-500">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-3">
+                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 text-center mb-2">
+              Reset Vault?
+            </h3>
+            
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-800 dark:text-red-200 font-semibold mb-2">
+                ⚠️ Warning: This action cannot be undone!
+              </p>
+              <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                <li>• All vault data will be permanently deleted</li>
+                <li>• {vaultFiles.length} file(s) will be removed from vault</li>
+                <li>• Password and PIN will be erased</li>
+                <li>• This action cannot be recovered</li>
+              </ul>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Type <span className="font-bold text-red-600">DELETE</span> to confirm:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="Type DELETE"
+                className="w-full px-4 py-2 rounded-lg border-2 border-red-300 dark:border-red-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:border-red-500 focus:outline-none"
+              />
+            </div>
+
+            {error && (
+              <div className="mb-4 flex items-center gap-2 text-red-600 dark:text-red-400">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setDeleteConfirmation('');
+                  setError('');
+                }}
+                className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
+              >
+                Wait! I Remember
+              </button>
+              <button
+                onClick={handleForgotPassword}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+              >
+                Darn it, Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

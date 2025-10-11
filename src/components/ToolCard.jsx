@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import * as Icons from 'lucide-react';
 
-function ToolCard({ tool }) {
+const ToolCard = memo(({ tool }) => {
   const IconComponent = Icons[tool.icon] || Icons.Wrench;
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (window.electronAPI) {
       window.electronAPI.openToolWindow(tool.name.toLowerCase().replace(' ', '-'));
     } else {
       // Fallback for development
       console.log(`Opening ${tool.name}`);
     }
-  };
+  }, [tool.name]);
 
   return (
     <div
@@ -25,6 +25,8 @@ function ToolCard({ tool }) {
       <p className="text-sm text-zinc-600 dark:text-zinc-400">{tool.category}</p>
     </div>
   );
-}
+});
+
+ToolCard.displayName = 'ToolCard';
 
 export default ToolCard;

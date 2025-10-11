@@ -85,6 +85,7 @@ function AppContent() {
               >
                 <Routes location={location}>
                   <Route path="/" element={<Home />} />
+                  <Route path="/favorites" element={<Home />} />
                   <Route path="/category/:category" element={<Home />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="*" element={<Home />} />

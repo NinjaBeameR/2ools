@@ -62,7 +62,34 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      enableRemoteModule: false,
+      webSecurity: false, // Disable for FFmpeg CDN loading
     },
+  });
+
+  // Set CSP to allow FFmpeg CDN resources
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://unpkg.com https://cdn.jsdelivr.net; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; " +
+          "worker-src 'self' blob:; " +
+          "child-src 'self' blob:;"
+        ]
+      }
+    });
+  });
+
+  // Enable screen capture permissions
+  mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    const allowedPermissions = ['media', 'mediaKeySystem', 'geolocation', 'notifications', 'midiSysex', 'pointerLock', 'fullscreen'];
+    if (allowedPermissions.includes(permission)) {
+      callback(true);
+    } else {
+      callback(false);
+    }
   });
 
   mainWindow.loadURL(
@@ -149,7 +176,34 @@ ipcMain.handle('open-tool-window', (event, toolName) => {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      enableRemoteModule: false,
+      webSecurity: false, // Disable for FFmpeg CDN loading
     },
+  });
+
+  // Set CSP to allow FFmpeg CDN resources
+  toolWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://unpkg.com https://cdn.jsdelivr.net; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; " +
+          "worker-src 'self' blob:; " +
+          "child-src 'self' blob:;"
+        ]
+      }
+    });
+  });
+
+  // Enable screen capture permissions for tool windows
+  toolWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    const allowedPermissions = ['media', 'mediaKeySystem', 'geolocation', 'notifications', 'midiSysex', 'pointerLock', 'fullscreen'];
+    if (allowedPermissions.includes(permission)) {
+      callback(true);
+    } else {
+      callback(false);
+    }
   });
 
   const url = process.env.NODE_ENV === 'development'
@@ -475,32 +529,22 @@ ipcMain.handle('get-system-info', async () => {
   }
 });
 
-// Screen Recorder - Save Recording
-ipcMain.handle('save-recording', async (event, { buffer, defaultName }) => {
-  const { dialog } = require('electron');
-  const fs = require('fs').promises;
-  
+// File operations for Vault
+const { shell } = require('electron');
+
+ipcMain.handle('open-file', async (event, filePath) => {
   try {
-    const result = await dialog.showSaveDialog({
-      title: 'Save Recording',
-      defaultPath: defaultName || 'screen-recording.webm',
-      filters: [
-        { name: 'Video Files', extensions: ['webm', 'mp4'] },
-        { name: 'All Files', extensions: ['*'] }
-      ]
-    });
-
-    if (result.canceled) {
-      return { success: false, canceled: true };
-    }
-
-    // Write the buffer to the selected file
-    await fs.writeFile(result.filePath, Buffer.from(buffer));
-    
-    return { success: true, filePath: result.filePath };
+    await shell.openPath(filePath);
+    return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
   }
+});
+
+// File Converter using FFmpeg (placeholder - will be implemented with ffmpeg.wasm)
+ipcMain.handle('convert-file', async (event, options) => {
+  // This will be handled on the frontend using ffmpeg.wasm for cross-platform compatibility
+  return { success: false, error: 'File conversion should be handled in renderer process with ffmpeg.wasm' };
 });
 
 // Auto-updater events are handled at the top of the file

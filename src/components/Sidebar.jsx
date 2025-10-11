@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Wrench, FileText, CheckSquare, Folder, Shield, Settings, Video } from 'lucide-react';
+import { Home, Wrench, FileText, CheckSquare, Folder, Shield, Settings, Video, Star } from 'lucide-react';
 
 const sidebarItems = [
   { name: 'Home', icon: Home, path: '/' },
+  { name: 'Favorites', icon: Star, path: '/favorites' },
   { name: 'General Tools', icon: Wrench, path: '/category/general' },
   { name: 'Media Tools', icon: Video, path: '/category/media' },
   { name: 'PDF & Image Tools', icon: FileText, path: '/category/pdf' },
@@ -16,7 +17,7 @@ const bottomItems = [
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-function Sidebar() {
+const Sidebar = memo(() => {
   const location = useLocation();
 
   return (
@@ -64,6 +65,8 @@ function Sidebar() {
       </nav>
     </aside>
   );
-}
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;
