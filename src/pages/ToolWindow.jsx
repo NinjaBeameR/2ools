@@ -38,6 +38,22 @@ const ReadingMode = lazy(() => import('../tools/ReadingMode'));
 const TwoLayerVault = lazy(() => import('../tools/TwoLayerVault'));
 const SystemInfoDashboard = lazy(() => import('../tools/SystemInfoDashboard'));
 const FileConverter = lazy(() => import('../tools/FileConverter'));
+const FileConverterV2 = lazy(() => import('../tools/FileConverterV2'));
+
+// NEW TOOLS
+const ScreenshotCapture = lazy(() => import('../tools/ScreenshotCapture'));
+const OCRTextExtractor = lazy(() => import('../tools/OCRTextExtractor'));
+const WiFiQRGenerator = lazy(() => import('../tools/WiFiQRGenerator'));
+const PortScanner = lazy(() => import('../tools/PortScanner'));
+const JSONFormatter = lazy(() => import('../tools/JSONFormatter'));
+const Base64Tool = lazy(() => import('../tools/Base64Tool'));
+const HashGenerator = lazy(() => import('../tools/HashGenerator'));
+const RegexTester = lazy(() => import('../tools/RegexTester'));
+const DiffChecker = lazy(() => import('../tools/DiffChecker'));
+const IPDomainLookup = lazy(() => import('../tools/IPDomainLookup'));
+const TypingSpeedTest = lazy(() => import('../tools/TypingSpeedTest'));
+const ExpenseTracker = lazy(() => import('../tools/ExpenseTracker'));
+const WatermarkTool = lazy(() => import('../tools/WatermarkTool'));
 
 // Loading component
 function LoadingFallback() {
@@ -125,7 +141,38 @@ function ToolWindow() {
       case 'system-info-dashboard':
         return <SystemInfoDashboard />;
       case 'file-converter':
-        return <MaintenanceNotice toolName="File Converter" />;
+        return <FileConverterV2 />;
+      // NEW TOOLS - Screenshot & OCR
+      case 'screenshot-capture':
+        return <ScreenshotCapture />;
+      case 'ocr-text-extractor':
+        return <OCRTextExtractor />;
+      // Network Tools
+      case 'wifi-qr-generator':
+        return <WiFiQRGenerator />;
+      case 'port-scanner':
+        return <PortScanner />;
+      // Developer Tools
+      case 'json-formatter':
+        return <JSONFormatter />;
+      case 'base64-tool':
+        return <Base64Tool />;
+      case 'hash-generator':
+        return <HashGenerator />;
+      case 'regex-tester':
+        return <RegexTester />;
+      case 'diff-checker':
+        return <DiffChecker />;
+      case 'ip-domain-lookup':
+        return <IPDomainLookup />;
+      // Productivity
+      case 'typing-speed-test':
+        return <TypingSpeedTest />;
+      case 'expense-tracker':
+        return <ExpenseTracker />;
+      // Content Creation
+      case 'watermark-tool':
+        return <WatermarkTool />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center">

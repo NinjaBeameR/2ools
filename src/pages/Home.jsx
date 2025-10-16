@@ -14,6 +14,35 @@ const toolCategories = [
 			{ name: 'QR Code Generator', icon: 'QrCode' },
 			{ name: 'Text Formatter', icon: 'Type' },
 			{ name: 'Password Generator', icon: 'Lock' },
+			{ name: 'Typing Speed Test', icon: 'Keyboard' },
+		],
+	},
+	{
+		name: 'Developer Tools',
+		id: 'developer',
+		tools: [
+			{ name: 'JSON Formatter', icon: 'Braces' },
+			{ name: 'Base64 Tool', icon: 'Binary' },
+			{ name: 'Hash Generator', icon: 'Key' },
+			{ name: 'Regex Tester', icon: 'Search' },
+			{ name: 'Diff Checker', icon: 'GitCompare' },
+			{ name: 'IP Domain Lookup', icon: 'Globe' },
+		],
+	},
+	{
+		name: 'Network Tools',
+		id: 'network',
+		tools: [
+			{ name: 'WiFi QR Generator', icon: 'Wifi' },
+			{ name: 'Port Scanner', icon: 'Server' },
+		],
+	},
+	{
+		name: 'Screenshot & OCR',
+		id: 'screenshot',
+		tools: [
+			{ name: 'Screenshot Capture', icon: 'Camera' },
+			{ name: 'OCR Text Extractor', icon: 'FileImage' },
 		],
 	},
 	{
@@ -23,7 +52,7 @@ const toolCategories = [
 			{ name: 'Audio Trimmer & Joiner', icon: 'Music' },
 			{ name: 'Text to Speech', icon: 'Volume2' },
 			{ name: 'Video Compressor', icon: 'Video' },
-			{ name: 'File Converter', icon: 'FileCode', maintenance: true },
+			{ name: 'File Converter', icon: 'FileCode' },
 		],
 	},
 	{
@@ -36,6 +65,7 @@ const toolCategories = [
 			{ name: 'Image to PDF', icon: 'FileImage' },
 			{ name: 'Image Converter', icon: 'Image' },
 			{ name: 'Image Resizer & Cropper', icon: 'Crop' },
+			{ name: 'Watermark Tool', icon: 'Droplet' },
 		],
 	},
 	{
@@ -50,6 +80,7 @@ const toolCategories = [
 			{ name: 'Daily Goal Dashboard', icon: 'Target' },
 			{ name: 'Habit Tracker', icon: 'TrendingUp' },
 			{ name: 'Reading Mode', icon: 'BookOpen' },
+			{ name: 'Expense Tracker', icon: 'DollarSign' },
 		],
 	},
 	{

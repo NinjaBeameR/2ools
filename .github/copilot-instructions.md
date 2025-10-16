@@ -20,3 +20,6 @@
 - Work through each checklist item systematically.
 - Keep communication concise and focused.
 - Follow development best practices.
+- Do not create any documents unless specified.
+- Always find out the root cause of issues.
+- Do not assume anything; verify all details.
